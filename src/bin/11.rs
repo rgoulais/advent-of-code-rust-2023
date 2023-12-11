@@ -4,19 +4,19 @@ fn part_all(input_str: &str, galaxy_age: usize) -> Option<usize> {
     let mut effective_row = 0;
     let mut last_row = 0;
     let mut coordinates_to_value: Vec<(usize, usize)> = vec![];
-
-    for (i, row) in input_str.lines().enumerate() {
-        for (j, item) in row.chars().enumerate() {
-            if item == '#' {
-                let ecart_row = i - last_row;
-                last_row = i;
-                if ecart_row > 1 {
-                    effective_row += 1 + (galaxy_age * (ecart_row - 1));
-                } else {
-                    effective_row += ecart_row;
-                }
-                coordinates_to_value.push((j, effective_row));
+    let line_length = input_str.find('\n').unwrap() + 1;
+    for (k, item) in input_str.chars().enumerate() {
+        let j = k % line_length;
+        let i = k / line_length;
+        if item == '#' {
+            let ecart_row = i - last_row;
+            last_row = i;
+            if ecart_row > 1 {
+                effective_row += 1 + (galaxy_age * (ecart_row - 1));
+            } else {
+                effective_row += ecart_row;
             }
+            coordinates_to_value.push((j, effective_row));
         }
     }
     coordinates_to_value.sort_by_key(|&(first, _)| first);
