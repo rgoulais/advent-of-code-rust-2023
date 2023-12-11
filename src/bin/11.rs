@@ -1,11 +1,9 @@
 advent_of_code::solution!(11);
 
-use std::collections::BTreeMap;
-
 fn part_all(input_str: &str, galaxy_age: usize) -> Option<usize> {
     let mut effective_row = 0;
     let mut last_row = 0;
-    let mut coordinates_to_value = BTreeMap::new();
+    let mut coordinates_to_value: Vec<(usize, usize)> = vec![];
 
     for (i, row) in input_str.lines().enumerate() {
         for (j, item) in row.chars().enumerate() {
@@ -17,25 +15,24 @@ fn part_all(input_str: &str, galaxy_age: usize) -> Option<usize> {
                 } else {
                     effective_row += ecart_row;
                 }
-                coordinates_to_value.insert((i, j), effective_row);
+                coordinates_to_value.push((j, effective_row));
             }
         }
     }
-    let mut sorted_coordinates = coordinates_to_value.iter().collect::<Vec<_>>();
-    sorted_coordinates.sort_by_key(|&(coordinate, _)| coordinate.1);
+    coordinates_to_value.sort_by_key(|&(first, _)| first);
 
     let (mut effective_col, mut last_col) = (0usize, 0usize);
     let (mut coords, mut total) = (vec![], 0usize);
 
-    for &(coord, &row) in sorted_coordinates.iter() {
-        let ecart_col = coord.1 - last_col;
-        last_col = coord.1;
+    for (new_col, row) in coordinates_to_value.iter() {
+        let ecart_col = new_col - last_col;
+        last_col = *new_col;
         if ecart_col > 1 {
             effective_col += 1 + (galaxy_age * (ecart_col - 1));
         } else {
             effective_col += ecart_col;
         }
-        let new_coord = (row, effective_col);
+        let new_coord = (*row, effective_col);
         for &(r, c) in coords.iter() {
             total += new_coord.0.abs_diff(r) + new_coord.1.abs_diff(c)
         }
