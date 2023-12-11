@@ -28,12 +28,13 @@ fn part_all(input_str: &str, galaxy_age: usize) -> Option<usize> {
     let (mut coords, mut total) = (vec![], 0usize);
 
     for &(coord, &row) in sorted_coordinates.iter() {
-        let mut ecart_col = coord.1 - last_col;
+        let ecart_col = coord.1 - last_col;
         last_col = coord.1;
         if ecart_col > 1 {
-            ecart_col = 1 + (galaxy_age * (ecart_col - 1));
+            effective_col += 1 + (galaxy_age * (ecart_col - 1));
+        } else {
+            effective_col += ecart_col;
         }
-        effective_col += ecart_col;
         let new_coord = (row, effective_col);
         for &(r, c) in coords.iter() {
             total += new_coord.0.abs_diff(r) + new_coord.1.abs_diff(c)
@@ -59,18 +60,18 @@ mod tests {
     #[test]
     fn test_one() {
         let result = part_all(&advent_of_code::template::read_file("examples", DAY), 2);
-        assert_eq!(result, 374);
+        assert_eq!(result, Some(374));
     }
 
     #[test]
     fn test_two() {
         let result = part_all(&advent_of_code::template::read_file("examples", DAY), 10);
-        assert_eq!(result, 1030);
+        assert_eq!(result, Some(1030));
     }
 
     #[test]
     fn test_three() {
         let result = part_all(&advent_of_code::template::read_file("examples", DAY), 100);
-        assert_eq!(result, 8410);
+        assert_eq!(result, Some(8410));
     }
 }
