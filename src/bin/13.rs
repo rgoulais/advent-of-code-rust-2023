@@ -88,8 +88,12 @@ pub fn part_one(input: &str) -> Option<usize> {
     let mut result = 0;
     let (h_blocks, v_blocks) = get_numeric_blocks(input);
     for i in 0..h_blocks.len() {
-        result += 100 * find_mirror_start_index(&h_blocks[i], 0);
-        result += find_mirror_start_index(&v_blocks[i], 0);
+        let ret = find_mirror_start_index(&v_blocks[i], 0);
+        if  ret > 0 {
+            result += ret;
+        } else {
+            result += 100 * find_mirror_start_index(&h_blocks[i], 0);
+        };
     }
     Some(result)
 }
@@ -100,11 +104,11 @@ pub fn part_two(input: &str) -> Option<usize> {
     for i in 0..h_blocks.len() {
         let h_len = v_blocks[i].len();
         let v_len = h_blocks[i].len();
-        let ret = iterate_on_block(&h_blocks[i], h_len);
+        let ret = iterate_on_block(&v_blocks[i], v_len);
         if ret > 0 {
-            result += 100 * ret;
+            result += ret;
         } else {
-            result += iterate_on_block(&v_blocks[i], v_len);
+            result += 100 * iterate_on_block(&h_blocks[i], h_len);
         }
     }
     Some(result)
