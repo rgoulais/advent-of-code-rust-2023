@@ -11,7 +11,6 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 
 | Day | Part 1 | Part 2 |
 | :---: | :---: | :---:  |
-| [Day 10](./src/bin/10.rs) | `-` | `-` |
 | [Day 11](./src/bin/11.rs) | `96.0µs` | `95.8µs` |
 | [Day 12](./src/bin/12.rs) | `358.8µs` | `770.0µs` |
 | [Day 13](./src/bin/13.rs) | `463.8µs` | `1.1ms` |
@@ -193,7 +192,7 @@ cargo today
 1. Install [`aoc-cli`](https://github.com/scarvalhojr/aoc-cli/) via cargo: `cargo install aoc-cli --version 0.12.0`
 2. Create an `.adventofcode.session` file in your home directory and paste your session cookie. To retrieve the session cookie, press F12 anywhere on the Advent of Code website to open your browser developer tools. Look in _Cookies_ under the _Application_ or _Storage_ tab, and copy out the `session` cookie value. [^1]
 
-Once installed, you can use the [download command](#download-input--description-for-a-day), the read command, and automatically submit solutions via the [`--submit` flag](#submitting-solutions).
+Once installed, you can use the download command, the read command, and automatically submit solutions via the [`--submit` flag](#submitting-solutions).
 
 ### Automatically track ⭐️ progress in the readme
 

@@ -17,25 +17,22 @@ pub fn split_line(input: &str) -> (String, Vec<usize>) {
     }
 
     let second = lines.next().unwrap();
-    let numbers: Result<Vec<usize>, _> = second.split(',')
-        .map(|s| s.parse::<usize>())
-        .collect();
+    let numbers: Result<Vec<usize>, _> = second.split(',').map(|s| s.parse::<usize>()).collect();
     match numbers {
         Ok(nums) => (result, nums),
         Err(_e) => (result, vec![]),
     }
 }
 
-
 #[cached]
 pub fn count_match(pattern: String, list: Vec<usize>) -> usize {
     let pattern = pattern.trim_start_matches('.');
-    if list.len() == 0 {
+    if list.is_empty() {
         if pattern.contains('#') {
             return 0;
         }
         return 1;
-    } else if pattern.len() == 0 {
+    } else if pattern.is_empty() {
         return 0;
     }
 
@@ -45,26 +42,25 @@ pub fn count_match(pattern: String, list: Vec<usize>) -> usize {
     let first = list[0];
     let rest = &list[1..];
     if pattern.starts_with('#') {
-        let chars = pattern.chars()
+        let chars = pattern
+            .chars()
             .take_while(|&c| c == '#' || c == '?')
             .count();
         if chars < first {
             return 0;
         }
         let mut nouveau_texte: String = pattern.chars().skip(first).collect();
-        if nouveau_texte.len() == 0 {
-            if rest.len() == 0 {
+        if nouveau_texte.is_empty() {
+            if rest.is_empty() {
                 return 1;
             } else {
                 return 0;
             }
-        } else {
-            if nouveau_texte.starts_with('#') {
-                return 0;
-            }
+        } else if nouveau_texte.starts_with('#') {
+            return 0;
         }
         nouveau_texte = nouveau_texte.chars().skip(1).collect();
-        return count_match(nouveau_texte, rest.to_vec());
+        count_match(nouveau_texte, rest.to_vec())
     } else {
         let mut text1 = String::from(pattern);
         text1.replace_range(0..1, "#");
@@ -72,10 +68,9 @@ pub fn count_match(pattern: String, list: Vec<usize>) -> usize {
         text2.replace_range(0..1, ".");
         let c1 = count_match(text1, list.clone());
         let c2 = count_match(text2, list);
-        return c1 + c2;
+        c1 + c2
     }
 }
-
 
 fn multicount_match(line: &str, count: i32) -> usize {
     let (pattern, list) = split_line(line);
@@ -117,7 +112,6 @@ pub fn part_two(input: &str) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     #[test]
     fn test_count_match1() {

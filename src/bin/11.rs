@@ -8,13 +8,13 @@ fn part_all(input_str: &str, galaxy_age: usize) -> Option<usize> {
     for (i, row) in input_str.lines().enumerate() {
         for (j, item) in row.chars().enumerate() {
             if item == '#' {
-                    let ecart_row = i - last_row;
-                    last_row = i;
-                    if ecart_row > 1 {
-                        effective_row += 1 + (galaxy_age * (ecart_row - 1));
-                    } else {
-                        effective_row += ecart_row;
-                    }
+                let ecart_row = i - last_row;
+                last_row = i;
+                if ecart_row > 1 {
+                    effective_row += 1 + (galaxy_age * (ecart_row - 1));
+                } else {
+                    effective_row += ecart_row;
+                }
                 coordinates_to_value.push((j, effective_row));
             }
         }
@@ -42,13 +42,12 @@ fn part_all(input_str: &str, galaxy_age: usize) -> Option<usize> {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    return part_all(input, 2);
+    part_all(input, 2)
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    return part_all(input, 1000000);
+    part_all(input, 1000000)
 }
-
 
 #[cfg(test)]
 mod tests {

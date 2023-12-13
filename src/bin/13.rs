@@ -28,19 +28,18 @@ fn parse_file_content(input: &str) -> Vec<Vec<String>> {
 }
 
 fn is_truncated_reverse_of_each_other(list1: &[usize], list2: &[usize]) -> bool {
-    if list1.len() == 0 || list2.len() == 0 {
+    if list1.is_empty() || list2.is_empty() {
         return false;
     }
     let len = list1.len() - 1;
-    let shortlen = list1.len().min(list2.len() );
+    let shortlen = list1.len().min(list2.len());
 
     for i in 0..shortlen {
         if list1[len - i] != list2[i] {
             return false;
         }
     }
-
-    return true;
+    true
 }
 
 fn find_mirror_start_index(block: &[usize], original_index: usize) -> usize {
@@ -65,12 +64,15 @@ fn transpose_block(block: &Vec<String>) -> Vec<String> {
     transposed
 }
 
-fn convert_string_blocks_to_int(block: &Vec<String>) -> Vec<usize> {
-    return block.iter().map(|line| convert_string_to_binary(line)).collect();
+fn convert_string_blocks_to_int(block: &[String]) -> Vec<usize> {
+    return block
+        .iter()
+        .map(|line| convert_string_to_binary(line))
+        .collect();
 }
 
 fn get_numeric_blocks(input: &str) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
-    let binary_string = input.replace("#", "1").replace(".", "0");
+    let binary_string = input.replace('#', "1").replace('.', "0");
     let blocks = parse_file_content(binary_string.as_str());
     let blocks_size = blocks.len();
     let mut h_blocks = Vec::with_capacity(blocks_size);
@@ -108,10 +110,9 @@ pub fn part_two(input: &str) -> Option<usize> {
     Some(result)
 }
 
-
 fn iterate_on_block(block: &Vec<usize>, row_len: usize) -> usize {
     let height = block.len();
-    let original_index_h = find_mirror_start_index(&block, 0);
+    let original_index_h = find_mirror_start_index(block, 0);
     for i in 0..height {
         for j in 0..row_len {
             let new_block = change_block_usize(block, i, j);
@@ -121,11 +122,11 @@ fn iterate_on_block(block: &Vec<usize>, row_len: usize) -> usize {
             }
         }
     }
-    return 0;
+    0
 }
 
-fn change_block_usize(block: &Vec<usize>, i: usize, j: usize) -> Vec<usize> {
-    let mut new_block = block.clone();
+fn change_block_usize(block: &[usize], i: usize, j: usize) -> Vec<usize> {
+    let mut new_block = block.to_vec();
     new_block[i] = new_block[i].bitxor(2_i32.pow(j as u32) as usize);
     new_block
 }
@@ -133,7 +134,6 @@ fn change_block_usize(block: &Vec<usize>, i: usize, j: usize) -> Vec<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     mod tests {
         use super::*;
@@ -192,7 +192,10 @@ mod tests {
 
     #[test]
     fn is_truncated_reverse_of_each_other_returns_true_for_truncated_reversed_lists() {
-        assert!(is_truncated_reverse_of_each_other(&[1, 2, 3, 4], &[4, 3, 2]));
+        assert!(is_truncated_reverse_of_each_other(
+            &[1, 2, 3, 4],
+            &[4, 3, 2]
+        ));
     }
 
     #[test]
@@ -209,14 +212,20 @@ mod tests {
     fn transpose_block_returns_correct_transposition_for_non_empty_block() {
         let block = vec!["123".to_string(), "456".to_string(), "789".to_string()];
         let result = transpose_block(&block);
-        assert_eq!(result, vec!["147".to_string(), "258".to_string(), "369".to_string()]);
+        assert_eq!(
+            result,
+            vec!["147".to_string(), "258".to_string(), "369".to_string()]
+        );
     }
 
     #[test]
     fn transpose_block_returns_single_character_strings_for_single_row_block() {
         let block = vec!["123".to_string()];
         let result = transpose_block(&block);
-        assert_eq!(result, vec!["1".to_string(), "2".to_string(), "3".to_string()]);
+        assert_eq!(
+            result,
+            vec!["1".to_string(), "2".to_string(), "3".to_string()]
+        );
     }
 
     #[test]
