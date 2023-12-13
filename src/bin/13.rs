@@ -31,15 +31,16 @@ fn is_truncated_reverse_of_each_other(list1: &[usize], list2: &[usize]) -> bool 
     if list1.len() == 0 || list2.len() == 0 {
         return false;
     }
-    let mut list1_reversed = list1.to_vec();
-    list1_reversed.reverse();
-    if list1_reversed.len() <= list2.len() {
-        let truncated_long_list = &list2[0..list1_reversed.len()];
-        truncated_long_list == list1_reversed
-    } else {
-        let truncated_long_list = &list1_reversed[0..list2.len()];
-        truncated_long_list == list2
+    let len = list1.len() - 1;
+    let shortlen = list1.len().min(list2.len() );
+
+    for i in 0..shortlen {
+        if list1[len - i] != list2[i] {
+            return false;
+        }
     }
+
+    return true;
 }
 
 fn find_mirror_start_index(block: &[usize], original_index: usize) -> usize {
