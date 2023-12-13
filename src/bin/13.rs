@@ -1,8 +1,8 @@
+use std::ops::BitXor;
 advent_of_code::solution!(13);
 
-fn convert_string_to_binary(input: &str) -> u32 {
-    let binary_string = input.replace("#", "1").replace(".", "0");
-    u32::from_str_radix(&binary_string, 2).unwrap()
+fn convert_string_to_binary(input: &str) -> usize {
+    usize::from_str_radix(input, 2).unwrap()
 }
 
 fn parse_file_content(input: &str) -> Vec<Vec<String>> {
@@ -27,27 +27,24 @@ fn parse_file_content(input: &str) -> Vec<Vec<String>> {
     blocks
 }
 
-fn is_truncated_reverse_of_each_other(list1: Vec<u32>, list2: Vec<u32>) -> bool {
+fn is_truncated_reverse_of_each_other(list1: &[usize], list2: &[usize]) -> bool {
     if list1.len() == 0 || list2.len() == 0 {
         return false;
     }
-    let mut list1_reversed = list1;
+    let mut list1_reversed = list1.to_vec();
     list1_reversed.reverse();
-    let (short_list, long_list) = if list1_reversed.len() <= list2.len() {
-        (list1_reversed, list2)
+    if list1_reversed.len() <= list2.len() {
+        let truncated_long_list = &list2[0..list1_reversed.len()];
+        truncated_long_list == list1_reversed
     } else {
-        (list2, list1_reversed)
-    };
-
-    let truncated_long_list = &long_list[0..short_list.len()];
-    truncated_long_list == short_list
+        let truncated_long_list = &list1_reversed[0..list2.len()];
+        truncated_long_list == list2
+    }
 }
 
-fn find_mirror_start_index(block: Vec<String>, original_index: usize) -> usize {
-    let binary_values: Vec<u32> = block.iter().map(|line| convert_string_to_binary(line)).collect();
-
-    for i in 1..binary_values.len() {
-        if i != original_index && is_truncated_reverse_of_each_other(binary_values[..i].to_vec(), binary_values[i..].to_vec()) {
+fn find_mirror_start_index(block: &[usize], original_index: usize) -> usize {
+    for i in 1..block.len() {
+        if i != original_index && is_truncated_reverse_of_each_other(&block[..i], &block[i..]) {
             return i;
         }
     }
@@ -55,7 +52,7 @@ fn find_mirror_start_index(block: Vec<String>, original_index: usize) -> usize {
     0
 }
 
-fn transpose_block(block: Vec<String>) -> Vec<String> {
+fn transpose_block(block: &Vec<String>) -> Vec<String> {
     let mut transposed = vec![String::new(); block[0].len()];
 
     for row in block {
@@ -67,64 +64,68 @@ fn transpose_block(block: Vec<String>) -> Vec<String> {
     transposed
 }
 
-fn find_mirror_start_index_in_columns(block: Vec<String>) -> usize {
-    let transposed_block = transpose_block(block);
-    find_mirror_start_index(transposed_block, 0)
+fn convert_string_blocks_to_int(block: &Vec<String>) -> Vec<usize> {
+    return block.iter().map(|line| convert_string_to_binary(line)).collect();
+}
+
+fn get_numeric_blocks(input: &str) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
+    let binary_string = input.replace("#", "1").replace(".", "0");
+    let blocks = parse_file_content(binary_string.as_str());
+    let blocks_size = blocks.len();
+    let mut h_blocks = Vec::with_capacity(blocks_size);
+    let mut v_blocks = Vec::with_capacity(blocks_size);
+    for block in blocks {
+        h_blocks.push(convert_string_blocks_to_int(&block));
+        v_blocks.push(convert_string_blocks_to_int(&transpose_block(&block)));
+    }
+    (h_blocks, v_blocks)
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let blocks = parse_file_content(input);
     let mut result = 0;
-
-    for block in blocks {
-        result += 100 * find_mirror_start_index(block.clone(), 0);
-        result += find_mirror_start_index_in_columns(block);
+    let (h_blocks, v_blocks) = get_numeric_blocks(input);
+    for i in 0..h_blocks.len() {
+        result += 100 * find_mirror_start_index(&h_blocks[i], 0);
+        result += find_mirror_start_index(&v_blocks[i], 0);
     }
     Some(result)
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let blocks = parse_file_content(input);
+    let (h_blocks, v_blocks) = get_numeric_blocks(input);
     let mut result = 0;
-
-    for block in blocks {
-        let ret = iterate_on_block(&block);
-        result += ret;
+    for i in 0..h_blocks.len() {
+        let h_len = v_blocks[i].len();
+        let v_len = h_blocks[i].len();
+        let ret = iterate_on_block(&h_blocks[i], h_len);
+        if ret > 0 {
+            result += 100 * ret;
+        } else {
+            result += iterate_on_block(&v_blocks[i], v_len);
+        }
     }
     Some(result)
 }
 
 
-fn iterate_on_block(block: &Vec<String>) -> usize {
+fn iterate_on_block(block: &Vec<usize>, row_len: usize) -> usize {
     let height = block.len();
-    let width = block[0].len();
-    let transposed_block = transpose_block(block.clone());
-    let original_index_h = find_mirror_start_index(block.clone(), 0);
-    let original_index_v = find_mirror_start_index(transposed_block, 0);
+    let original_index_h = find_mirror_start_index(&block, 0);
     for i in 0..height {
-        for j in 0..width {
-            let new_block = change_block_char(&block, i, j);
-            let new_transposed_block = transpose_block(new_block.clone());
-            let ret = find_mirror_start_index(new_block, original_index_h);
-            let ret2 = find_mirror_start_index(new_transposed_block, original_index_v);
+        for j in 0..row_len {
+            let new_block = change_block_usize(block, i, j);
+            let ret = find_mirror_start_index(&new_block, original_index_h);
             if ret > 0 {
-                return 100 * ret;
-            }
-            if ret2 > 0 {
-                return ret2;
+                return ret;
             }
         }
     }
     return 0;
 }
 
-fn change_block_char(block: &Vec<String>, i: usize, j: usize) -> Vec<String> {
+fn change_block_usize(block: &Vec<usize>, i: usize, j: usize) -> Vec<usize> {
     let mut new_block = block.clone();
-    let mut new_line = new_block[i].clone();
-    let ch = new_line.chars().nth(j).unwrap();
-    let new_ch = if ch == '#' { '.' } else { '#' };
-    new_line.replace_range(j..j + 1, &new_ch.to_string());
-    new_block[i] = new_line;
+    new_block[i] = new_block[i].bitxor(2_i32.pow(j as u32) as usize);
     new_block
 }
 
@@ -138,9 +139,9 @@ mod tests {
 
         #[test]
         fn parse_file_content_splits_blocks_correctly() {
-            let input = "###..\n###..\n\n###..\n###..";
+            let input = "11100\n11100\n\n11100\n11100";
             let result = parse_file_content(input);
-            assert_eq!(result, vec![vec!["###..", "###.."], vec!["###..", "###.."]]);
+            assert_eq!(result, vec![vec!["11100", "11100"], vec!["11100", "11100"]]);
         }
 
         #[test]
@@ -152,9 +153,9 @@ mod tests {
 
         #[test]
         fn parse_file_content_handles_input_without_empty_lines() {
-            let input = "###..\n###..";
+            let input = "11100\n11100";
             let result = parse_file_content(input);
-            assert_eq!(result, vec![vec!["###..", "###.."]]);
+            assert_eq!(result, vec![vec!["11100", "11100"]]);
         }
 
         #[test]
@@ -167,7 +168,7 @@ mod tests {
 
     #[test]
     fn test_convert_string_to_binary() {
-        let result = convert_string_to_binary("###..");
+        let result = convert_string_to_binary("11100");
         assert_eq!(result, 28);
     }
 
@@ -185,107 +186,105 @@ mod tests {
 
     #[test]
     fn is_truncated_reverse_of_each_other_returns_true_for_reversed_lists() {
-        assert!(is_truncated_reverse_of_each_other(vec![1, 2, 3], vec![3, 2, 1]));
+        assert!(is_truncated_reverse_of_each_other(&[1, 2, 3], &[3, 2, 1]));
     }
 
     #[test]
     fn is_truncated_reverse_of_each_other_returns_true_for_truncated_reversed_lists() {
-        assert!(is_truncated_reverse_of_each_other(vec![1, 2, 3, 4], vec![4, 3, 2]));
+        assert!(is_truncated_reverse_of_each_other(&[1, 2, 3, 4], &[4, 3, 2]));
     }
 
     #[test]
     fn is_truncated_reverse_of_each_other_returns_false_for_non_reversed_lists() {
-        assert!(!is_truncated_reverse_of_each_other(vec![1, 2, 3], vec![1, 2, 3]));
+        assert!(!is_truncated_reverse_of_each_other(&[1, 2, 3], &[1, 2, 3]));
+    }
+
+    #[test]
+    fn is_truncated_reverse_of_each_other_returns_false_for_two_values() {
+        assert!(!is_truncated_reverse_of_each_other(&[3], &[0]));
     }
 
     #[test]
     fn transpose_block_returns_correct_transposition_for_non_empty_block() {
         let block = vec!["123".to_string(), "456".to_string(), "789".to_string()];
-        let result = transpose_block(block);
+        let result = transpose_block(&block);
         assert_eq!(result, vec!["147".to_string(), "258".to_string(), "369".to_string()]);
     }
 
     #[test]
     fn transpose_block_returns_single_character_strings_for_single_row_block() {
         let block = vec!["123".to_string()];
-        let result = transpose_block(block);
+        let result = transpose_block(&block);
         assert_eq!(result, vec!["1".to_string(), "2".to_string(), "3".to_string()]);
     }
 
     #[test]
     fn transpose_block_returns_single_string_for_single_column_block() {
         let block = vec!["1".to_string(), "2".to_string(), "3".to_string()];
-        let result = transpose_block(block);
+        let result = transpose_block(&block);
         assert_eq!(result, vec!["123".to_string()]);
     }
 
     #[test]
     fn find_mirror_start_index_returns_correct_index_for_mirrored_block() {
-        let block = vec!["##".to_string(), "#.".to_string(), "#.".to_string(), "##".to_string()];
-        let result = find_mirror_start_index(block, 0);
+        let block = vec![3, 2, 2, 3];
+        let result = find_mirror_start_index(&block, 0);
         assert_eq!(result, 2);
     }
 
     #[test]
     fn find_mirror_start_index_returns_zero_for_non_mirrored_block() {
-        let block = vec!["##".to_string(), "..".to_string()];
-        let result = find_mirror_start_index(block, 0);
+        let block = vec![3, 0];
+        let result = find_mirror_start_index(&block, 0);
         assert_eq!(result, 0);
     }
 
     #[test]
     fn find_mirror_start_index_returns_correct_index_for_partially_mirrored_block_haut() {
-        let block = vec!["#.".to_string(), "##".to_string(), "#.".to_string(), "#.".to_string(), "##".to_string()];
-        let result = find_mirror_start_index(block, 0);
+        let block = vec![2, 3, 2, 2, 3];
+        let result = find_mirror_start_index(&block, 0);
         assert_eq!(result, 3);
     }
 
     #[test]
     fn find_mirror_start_index_returns_correct_index_for_partially_mirrored_block_bas() {
-        let block = vec!["##".to_string(), "#.".to_string(), "#.".to_string(), "##".to_string(), "##".to_string()];
-        let result = find_mirror_start_index(block, 0);
+        let block = vec![3, 2, 2, 3, 4];
+        let result = find_mirror_start_index(&block, 0);
         assert_eq!(result, 2);
     }
 
     #[test]
     fn change_block_char_changes_hash_to_dot() {
-        let block = vec!["#.".to_string(), "##".to_string()];
-        let result = change_block_char(&block, 0, 0);
-        assert_eq!(result, vec!["..".to_string(), "##".to_string()]);
+        let block = vec![2, 3];
+        let result = change_block_usize(&block, 0, 1);
+        assert_eq!(result, vec![0, 3]);
     }
 
     #[test]
-    fn change_block_char_changes_dot_to_hash() {
-        let block = vec!["#.".to_string(), "##".to_string()];
-        let result = change_block_char(&block, 0, 1);
-        assert_eq!(result, vec!["##".to_string(), "##".to_string()]);
+    fn change_block_usize_changes_dot_to_hash() {
+        let block = vec![2, 3];
+        let result = change_block_usize(&block, 0, 0);
+        assert_eq!(result, vec![3, 3]);
     }
 
     #[test]
-    fn change_block_char_does_not_change_other_lines() {
-        let block = vec!["#.".to_string(), "##".to_string()];
-        let result = change_block_char(&block, 0, 0);
+    fn change_block_usize_does_not_change_other_lines() {
+        let block = vec![2, 3];
+        let result = change_block_usize(&block, 0, 0);
         assert_eq!(result[1], block[1]);
     }
 
     #[test]
-    fn change_block_char_does_not_change_other_characters_in_same_line() {
-        let block = vec!["#.".to_string(), "##".to_string()];
-        let result = change_block_char(&block, 0, 0);
-        assert_eq!(result[0].chars().nth(1), block[0].chars().nth(1));
-    }
-
-    #[test]
     fn iterate_on_block_returns_zero_for_non_mirrored_block() {
-        let block = vec!["##".to_string(), "..".to_string()];
-        let result = iterate_on_block(&block);
+        let block = vec![3, 0];
+        let result = iterate_on_block(&block, 2);
         assert_eq!(result, 0);
     }
 
     #[test]
     fn iterate_on_block_returns_correct_value_for_mirrored_block() {
-        let block = vec!["#.".to_string(), "#.".to_string(), "#.".to_string(), "##".to_string()];
-        let result = iterate_on_block(&block);
-        assert_eq!(result, 200);
+        let block = vec![2, 2, 2, 3];
+        let result = iterate_on_block(&block, 2);
+        assert_eq!(result, 2);
     }
 }
