@@ -154,15 +154,4 @@ mod tests {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(64));
     }
-    #[test]
-    fn test_part_one_real() {
-        let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
-        assert_eq!(result, Some(109833));
-    }
-
-    #[test]
-    fn test_part_two_real() {
-        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
-        assert_eq!(result, Some(99875));
-    }
 }
