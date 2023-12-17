@@ -91,27 +91,27 @@ pub fn find_path(input: &str, pas_min: usize, pas_max: usize) -> Option<u16> {
     heap.push(State { cost: 0, position: 0, direction: RIGHT });
     heap.push(State { cost: 0, position: 0, direction: DOWN });
 
-    'prochain: while let Some(State { cost, position, direction }) = heap.pop() {
-        let mut next_position = position;
-        let mut next_cost = cost;
+    'prochain: while let Some(state) = heap.pop() {
+        let mut next_position = state.position;
+        let mut next_cost = state.cost;
         for _ in 0..pas_min {
-            next_position = match grid.deplace(direction, next_position) {
+            next_position = match grid.deplace(state.direction, next_position) {
                 Some(pos) => pos,
                 None => continue 'prochain,
             };
             next_cost = next_cost + grid.data[next_position];
         }
         for i in 1..(1 + ecart) {
-            next_position = match grid.deplace(direction, next_position) {
+            next_position = match grid.deplace(state.direction, next_position) {
                 Some(pos) => pos,
                 None => continue 'prochain,
             };
             next_cost = next_cost + grid.data[next_position];
-            if next_cost < dist[direction][i - 1][next_position] {
-                for new_direction in get_new_direction(direction) {
+            if next_cost < dist[state.direction][i - 1][next_position] {
+                for new_direction in get_new_direction(state.direction) {
                     heap.push(State { cost: next_cost, position: next_position, direction: new_direction });
                 }
-                dist[direction][i - 1][next_position] = next_cost;
+                dist[state.direction][i - 1][next_position] = next_cost;
             }
         }
     }
