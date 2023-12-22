@@ -19,9 +19,18 @@ dhat-heap = ["dhat"]
 today = ["chrono"]
 test_lib = []
 
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
 [dependencies]
 chrono = { version = "0.4.31", optional = true }
 dhat = { version = "0.3.2", optional = true }
 pico-args = "0.5.0"
 tinyjson = "2"
 cached ="0.46.1"
+#bevy = "0.12.1"
