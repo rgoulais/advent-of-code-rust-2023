@@ -1,9 +1,7 @@
 advent_of_code::solution!(22);
 
 use std::collections::{HashMap, HashSet, VecDeque};
-use crate::utils::Coord;
-
-mod utils;
+use advent_of_code::Coord;
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 struct Brique {
@@ -16,7 +14,7 @@ struct Mur {
     briques: HashMap<usize, Brique>,
     briques_en_dessous: HashMap<usize, Vec<usize>>,
     briques_au_dessus: HashMap<usize, Vec<usize>>,
-    max_z: usize,
+    max_z: isize,
 }
 
 impl Mur {
