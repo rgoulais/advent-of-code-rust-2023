@@ -1,7 +1,7 @@
 advent_of_code::solution!(23);
 
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, VecDeque};
+use std::collections::{BinaryHeap, HashMap, VecDeque};
 use advent_of_code::{Coord, Direction};
 
 #[derive(Clone, Copy, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
@@ -137,12 +137,47 @@ impl Maze {
         let mut max_distance = 0;
         let mut heap: BinaryHeap<Chemin> = BinaryHeap::new();
         heap.push(Chemin::new(self.pathes[0]));
+        let mut best_distances =  HashMap::new();
 
         while let Some(chemin) = heap.pop() {
             for path in self.pathes.iter().filter(|&x| x.start == chemin.end) {
                 let mut new_chemin = chemin.clone();
                 if !new_chemin.add_path(*path) {
                     continue;
+                }
+                let best_distance = best_distances.entry(path.end).or_insert(0);
+                if *best_distance > new_chemin.distance {
+                    continue;
+                } else {
+                    *best_distance = new_chemin.distance;
+                }
+                if new_chemin.end.0 == self.maze.len() as isize - 1 {
+                    max_distance = std::cmp::max(max_distance, new_chemin.distance);
+                    continue;
+                }
+                heap.push(new_chemin);
+            }
+        }
+        max_distance
+    }
+    pub fn solve_part2(&self) -> usize {
+        let mut max_distance = 0;
+        let mut heap: BinaryHeap<Chemin> = BinaryHeap::new();
+        heap.push(Chemin::new(self.pathes[0]));
+        let mut best_distances =  HashMap::new();
+
+        while let Some(chemin) = heap.pop() {
+            for path in self.pathes.iter().filter(|&x| x.start == chemin.end) {
+                let mut new_chemin = chemin.clone();
+                if !new_chemin.add_path(*path) {
+                    continue;
+                }
+                let best_for_end = best_distances.entry(path.end).or_insert(HashMap::new());
+                let best_for_start = best_for_end.entry(path.start).or_insert(0);
+                if *best_for_start > new_chemin.distance {
+                    continue;
+                } else {
+                    *best_for_start = new_chemin.distance;
                 }
                 if new_chemin.end.0 == self.maze.len() as isize - 1 {
                     max_distance = std::cmp::max(max_distance, new_chemin.distance);
@@ -206,7 +241,7 @@ pub fn part_two(input: &str) -> Option<usize> {
     let mut maze = Maze::new(false);
     maze.read_input(input);
     // low 5538
-    Some(maze.solve_part1())
+    Some(maze.solve_part2())
 }
 
 #[cfg(test)]
@@ -223,6 +258,18 @@ mod tests {
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(154));
+    }
+
+    #[test]
+    fn test_one_r() {
+        let result = part_one(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(2402));
+    }
+
+    #[test]
+    fn test_two_r() {
+        let result = part_two(&advent_of_code::template::read_file("inputs", DAY));
+        assert_eq!(result, Some(6450));
     }
 
 }
